@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fractional Knapsack Simulator with Animation</title>
+  <style>
+
+  #capacity{
+    margin: 10px;
+  }
+
+
+    :root {
+      --bg: #1e1e2f;
+      --text: #f1f1f1;
+      --card-bg: #2c2c3c;
+      --input-bg: #3c3c4c;
+      --border: #555;
+      --btn-bg: #5dade2;
+      --btn-hover: #3498db;
+      --result-bg: #2c2c3c;
+      --highlight: #5dade2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      background: var(--card-bg);
+      margin: auto;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    h1, h2, label {
+      color: var(--text);
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 20px;
+      display: block;
+    }
+
+    input[type="number"] {
+      padding: 8px;
+      background-color: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 1em;
+    }
+
+    button {
+      padding: 10px 15px;
+      background: var(--btn-bg);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: var(--btn-hover);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: var(--input-bg);
+    }
+
+    .results {
+      margin-top: 20px;
+      background: var(--result-bg);
+      padding: 15px;
+      border-left: 6px solid var(--highlight);
+      border-radius: 10px;
+    }
+
+    canvas {
+      margin-top: 20px;
+    }
+
+    .item-count {
+      margin: 10px 0;
+      font-weight: bold;
+      color: var(--highlight);
+    }
+
+    .remove-btn {
+      background: crimson;
+      font-size: 0.9em;
+    }
+
+    .remove-btn:hover {
+      background: darkred;
+    }
+
+    .animation-scene {
+      position: relative;
+      margin-top: 40px;
+      height: 600px;
+      background: radial-gradient(circle at bottom, #444 0%, #222 100%);
+      overflow: hidden;
+      border-radius: 20px;
+      background-image: url('https://img.freepik.com/premium-vector/cartoon-space-background-with-planets-moon_106024-601.jpg');
+      background-size: 100% 100%;
+    }
+
+    .spaceship {
+      position: absolute;
+      bottom: 150px;
+      left: 50%;
+      width: 60px;
+      height: 100px;
+      background: url('https://cdn.pixabay.com/photo/2013/07/12/13/52/rocket-147466_1280.png') no-repeat center/contain;
+      transform: translateX(-50%);
+    }
+
+    .crate-wrapper {
+      position: absolute;
+      text-align: center;
+      transition: transform 1s ease, opacity 1s ease;
+    }
+
+    .crate {
+      width: 50px;
+      height: 50px;
+      background: url('https://www.pngplay.com/wp-content/uploads/15/Box-Wooden-Crate-Transparent-Image.png') no-repeat center/contain;
+      background-size: contain;
+    }
+
+    .crate-label {
+      color: black;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .takeoff {
+      animation: liftOff 4s ease-in-out forwards;
+    }
+
+    @keyframes liftOff {
+      0% { transform: translateX(-50%) translateY(0); }
+      100% { transform: translateX(-50%) translateY(-400px); }
+    }
+
+    #play-animation-btn {
+      display: none;
+      margin-top: 20px;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text);
+      font-size: 0.9em;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Fractional Knapsack Simulator</h1>
+
+    <label for="capacity">Knapsack Capacity:</label>
+    <input type="number" id="capacity" placeholder="Enter Capacity" />
+
+    <div class="button-group">
+      <button onclick="addItem()">Add Item</button>
+      <button onclick="runKnapsack()">Run Simulation</button>
+    </div>
+
+    <div class="item-count" id="item-count">Total Items: 0</div>
+
+    <table id="items-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Value</th>
+          <th>Weight</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody id="items-container"></tbody>
+    </table>
+
+    <h2>Results</h2>
+    <div id="output" class="results"></div>
+    <canvas id="chart"></canvas>
+
+    <button id="play-animation-btn" onclick="startAnimation(globalKnapsack, globalRejected)">Play Animation</button>
+
+    <div class="animation-scene" id="animation-scene">
+      <div class="spaceship" id="spaceship"></div>
+    </div>
+
+    <footer>
+      <p>Rohan Suri 16010123276</p>
+      <p>Saad Waghoo 16010123285</p>
+      <p>Sahil Jawale 16010123287</p>
+    </footer>
+  </div>
+
+  <script>
+    let chartInstance = null;
+    let globalKnapsack = [];
+    let globalRejected = [];
+
+    function addItem() {
+      const tbody = document.getElementById("items-container");
+      const index = tbody.children.length + 1;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${index}</td>
+        <td><input type="number" class="value" min="0" placeholder="Value"></td>
+        <td><input type="number" class="weight" min="0" placeholder="Weight"></td>
+        <td><button class="remove-btn" onclick="removeItem(this)">Remove</button></td>
+      `;
+      tbody.appendChild(row);
+      updateItemCount();
+    }
+
+    function removeItem(btn) {
+      const row = btn.closest("tr");
+      row.remove();
+      updateTableIndexes();
+      updateItemCount();
+    }
+
+    function updateItemCount() {
+      const count = document.querySelectorAll("#items-container tr").length;
+      document.getElementById("item-count").textContent = `Total Items: ${count}`;
+    }
+
+    function updateTableIndexes() {
+      const rows = document.querySelectorAll("#items-container tr");
+      rows.forEach((row, idx) => {
+        row.children[0].textContent = idx + 1;
+      });
+    }
+
+    function runKnapsack() {
+      const capacityInput = document.getElementById("capacity");
+      let capacity = parseFloat(capacityInput.value);
+      if (isNaN(capacity) || capacity <= 0) {
+        alert("Please enter a valid knapsack capacity.");
+        return;
+      }
+
+      const valueInputs = document.querySelectorAll(".value");
+      const weightInputs = document.querySelectorAll(".weight");
+      let items = [];
+
+      for (let i = 0; i < valueInputs.length; i++) {
+        let value = parseFloat(valueInputs[i].value);
+        let weight = parseFloat(weightInputs[i].value);
+        if (!isNaN(value) && !isNaN(weight) && value > 0 && weight > 0) {
+          items.push({ value, weight, ratio: value / weight, index: i });
+        }
+      }
+
+      if (items.length === 0) {
+        alert("Please add at least one valid item.");
+        return;
+      }
+
+      items.sort((a, b) => b.ratio - a.ratio);
+
+      let totalValue = 0;
+      let knapsack = [];
+      let rejected = [];
+
+      for (let item of items) {
+        if (capacity >= item.weight) {
+          knapsack.push({ ...item, taken: 1 });
+          totalValue += item.value;
+          capacity -= item.weight;
+        } else if (capacity > 0) {
+          let fraction = capacity / item.weight;
+          knapsack.push({ ...item, taken: fraction });
+          totalValue += item.value * fraction;
+          capacity = 0;
+        } else {
+          rejected.push({ ...item });
+        }
+      }
+
+      globalKnapsack = knapsack;
+      globalRejected = rejected;
+
+      displayResults(knapsack, totalValue);
+      plotChart(knapsack);
+      document.getElementById("play-animation-btn").style.display = "block";
+    }
+
+    function displayResults(knapsack, totalValue) {
+      const output = document.getElementById("output");
+      output.innerHTML = `<h3>Total Value: ${totalValue.toFixed(2)}</h3>`;
+      let table = `<table><thead><tr><th>#</th><th>Value</th><th>Weight</th><th>Taken (%)</th></tr></thead><tbody>`;
+      knapsack.forEach((item, index) => {
+        table += `<tr><td>${index + 1}</td><td>${item.value}</td><td>${item.weight}</td><td>${(item.taken * 100).toFixed(2)}%</td></tr>`;
+      });
+      table += `</tbody></table>`;
+      output.innerHTML += table;
+    }
+
+    function plotChart(knapsack) {
+      const ctx = document.getElementById("chart").getContext("2d");
+      if (chartInstance) chartInstance.destroy();
+      const labels = knapsack.map((item, index) => `Item ${index + 1}`);
+      const data = knapsack.map(item => item.taken * 100);
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Percentage of Item Taken (%)',
+            data,
+            backgroundColor: '#5dade2',
+            borderColor: '#3498db',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          }
+        }
+      });
+    }
+
+    function startAnimation(knapsack, rejected) {
+      const scene = document.getElementById("animation-scene");
+      const spaceship = document.getElementById("spaceship");
+      const shipX = spaceship.offsetLeft + spaceship.offsetWidth / 2;
+
+      scene.innerHTML = '';
+      scene.appendChild(spaceship);
+      spaceship.classList.remove("takeoff");
+
+      const baseBottom = 20;
+
+      [...knapsack, ...rejected].forEach((item, index) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "crate-wrapper";
+        wrapper.style.left = `${30 + index * 60}px`;
+        wrapper.style.bottom = `${baseBottom}px`;
+
+        const crate = document.createElement("div");
+        crate.className = "crate";
+
+        const label = document.createElement("div");
+        label.className = "crate-label";
+        label.textContent = `${item.value}/${item.weight}`;
+
+        wrapper.appendChild(crate);
+        wrapper.appendChild(label);
+        scene.appendChild(wrapper);
+
+        if (item.taken) {
+          setTimeout(() => {
+            const crateX = wrapper.offsetLeft + 25;
+            const deltaX = shipX - crateX;
+            wrapper.style.transition = 'transform 1s ease, opacity 1s ease';
+            wrapper.style.transform = `translate(${deltaX}px, -100px)`;
+            wrapper.style.opacity = '0';
+
+            setTimeout(() => {
+              wrapper.remove();
+            }, 1000);
+          }, 500 + index * 600);
+        }
+      });
+
+      setTimeout(() => {
+        spaceship.classList.add("takeoff");
+      }, 1000 + knapsack.length * 600);
+    }
+  </script>
+</body>
+</html>
